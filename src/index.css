@@ -1,0 +1,85 @@
+@import "tailwindcss";
+
+@theme {
+  --color-calm-50: #f0fdf4;
+  --color-calm-100: #dcfce7;
+  --color-calm-200: #bbf7d0;
+  --color-calm-300: #86efac;
+  --color-calm-400: #4ade80;
+  --color-calm-500: #22c55e;
+  --color-calm-600: #16a34a;
+  --color-calm-700: #15803d;
+  --color-calm-800: #166534;
+  --color-calm-900: #14532d;
+  
+  --color-serenity-50: #f0f9ff;
+  --color-serenity-100: #e0f2fe;
+  --color-serenity-200: #bae6fd;
+  --color-serenity-300: #7dd3fc;
+  --color-serenity-400: #38bdf8;
+  --color-serenity-500: #0ea5e9;
+  --color-serenity-600: #0284c7;
+  --color-serenity-700: #0369a1;
+  --color-serenity-800: #075985;
+  --color-serenity-900: #0c4a6e;
+  
+  --color-gentle-50: #faf5ff;
+  --color-gentle-100: #f3e8ff;
+  --color-gentle-200: #e9d5ff;
+  --color-gentle-300: #d8b4fe;
+  --color-gentle-400: #c084fc;
+  --color-gentle-500: #a855f7;
+  --color-gentle-600: #9333ea;
+  --color-gentle-700: #7e22ce;
+  --color-gentle-800: #6b21a8;
+  --color-gentle-900: #581c87;
+}
+
+body {
+  background-color: #f9fafb;
+  color: #111827;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.card {
+  background-color: white;
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+}
+
+.btn-primary {
+  background-color: #16a34a;
+  color: white;
+  font-weight: 500;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  transition: background-color 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background-color: #15803d;
+}
+
+.btn-secondary {
+  background-color: #0284c7;
+  color: white;
+  font-weight: 500;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  transition: background-color 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background-color: #0369a1;
+}
+
+.encouragement-text {
+  color: #15803d;
+  font-style: italic;
+  font-size: 0.875rem;
+}
