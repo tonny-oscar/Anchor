@@ -1,11 +1,16 @@
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import { db } from '../firebase';
+import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 
 export default function Dashboard() {
+  const { currentUser } = useAuth();
   const [showAddModal, setShowAddModal] = useState(false);
   const [trackedSubstances, setTrackedSubstances] = useState([]);
   const [mood, setMood] = useState(null);
   const [notes, setNotes] = useState('');
+  const [loading, setLoading] = useState(true);
 
   const availableSubstances = [
     'Alcohol',
@@ -25,26 +30,83 @@ export default function Dashboard() {
     'Other'
   ];
 
-  const addSubstance = (substance) => {
+  useEffect(() => {
+    loadUserData();
+  }, [currentUser]);
+
+  const loadUserData = async () => {
+    if (!currentUser) return;
+    try {
+      const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        setTrackedSubstances(data.substances || []);
+      }
+    } catch (error) {
+      console.error('Error loading data:', error);
+    }
+    setLoading(false);
+  };
+
+  const addSubstance = async (substance) => {
     if (!trackedSubstances.find(s => s.name === substance)) {
-      setTrackedSubstances([...trackedSubstances, {
-        id: Date.now(),
+      const newSubstance = {
+        id: Date.now().toString(),
         name: substance,
         daysClean: 0,
         longestStreak: 0,
         totalCleanDays: 0,
         lastReset: new Date().toISOString().split('T')[0],
         startDate: new Date().toISOString().split('T')[0]
-      }]);
+      };
+      
+      try {
+        await updateDoc(doc(db, 'users', currentUser.uid), {
+          substances: arrayUnion(newSubstance)
+        });
+        setTrackedSubstances([...trackedSubstances, newSubstance]);
+      } catch (error) {
+        console.error('Error adding substance:', error);
+      }
     }
     setShowAddModal(false);
   };
+
+  const saveCheckIn = async () => {
+    if (!mood) return;
+    try {
+      const checkIn = {
+        mood,
+        notes,
+        date: new Date().toISOString(),
+        timestamp: Date.now()
+      };
+      
+      await updateDoc(doc(db, 'users', currentUser.uid), {
+        lastCheckIn: checkIn
+      });
+      
+      setMood(null);
+      setNotes('');
+      alert('Check-in saved!');
+    } catch (error) {
+      console.error('Error saving check-in:', error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-xl text-gray-600">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Hi Friend 👋</h1>
+          <h1 className="text-3xl font-bold mb-2">Hi {currentUser?.displayName || 'Friend'} 👋</h1>
           <p className="text-gray-600">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
           <p className="encouragement-text mt-2">Progress, not perfection. One day at a time.</p>
         </div>
@@ -103,7 +165,7 @@ export default function Dashboard() {
             {mood && (
               <>
                 <textarea placeholder="Optional notes..." className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-3" rows="3" value={notes} onChange={(e) => setNotes(e.target.value)}></textarea>
-                <button className="btn-primary w-full">Save Check-In</button>
+                <button onClick={saveCheckIn} className="btn-primary w-full">Save Check-In</button>
               </>
             )}
           </div>

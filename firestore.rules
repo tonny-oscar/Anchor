@@ -1,0 +1,31 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Users collection - users can only read/write their own data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Substances subcollection under users
+    match /users/{userId}/substances/{substanceId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Check-ins subcollection under users
+    match /users/{userId}/checkins/{checkinId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Habits subcollection under users
+    match /users/{userId}/habits/{habitId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Notes subcollection under users
+    match /users/{userId}/notes/{noteId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
