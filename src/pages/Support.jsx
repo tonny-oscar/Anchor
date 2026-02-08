@@ -1,4 +1,50 @@
+import { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import { db } from '../firebase';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+
 export default function Support() {
+  const { currentUser } = useAuth();
+  const [partnerEmail, setPartnerEmail] = useState('');
+  const [savedPartner, setSavedPartner] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    loadPartner();
+  }, [currentUser]);
+
+  const loadPartner = async () => {
+    if (!currentUser) return;
+    try {
+      const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        setSavedPartner(data.emergencyContact);
+      }
+    } catch (error) {
+      console.error('Error loading partner:', error);
+    }
+    setLoading(false);
+  };
+
+  const addPartner = async () => {
+    if (!partnerEmail.trim()) return;
+
+    try {
+      await updateDoc(doc(db, 'users', currentUser.uid), {
+        emergencyContact: partnerEmail
+      });
+      setSavedPartner(partnerEmail);
+      setPartnerEmail('');
+      setMessage('Partner added successfully!');
+      setTimeout(() => setMessage(''), 3000);
+    } catch (error) {
+      console.error('Error adding partner:', error);
+      setMessage('Error adding partner');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
@@ -7,9 +53,31 @@ export default function Support() {
         <div className="card mb-6">
           <h2 className="text-2xl font-semibold mb-4">Talk to Someone</h2>
           <p className="text-gray-700 mb-4">Add an accountability partner who can support your journey</p>
+          
+          {message && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+              {message}
+            </div>
+          )}
+
+          {savedPartner && (
+            <div className="mb-4 p-4 bg-calm-50 rounded-lg">
+              <p className="text-sm text-gray-600 mb-1">Current Partner:</p>
+              <p className="font-semibold text-calm-700">{savedPartner}</p>
+            </div>
+          )}
+
           <div className="flex gap-3">
-            <input type="email" placeholder="Partner's email" className="flex-1 px-4 py-2 border border-gray-300 rounded-lg" />
-            <button className="btn-primary">Add Partner</button>
+            <input 
+              type="email" 
+              placeholder="Partner's email" 
+              value={partnerEmail}
+              onChange={(e) => setPartnerEmail(e.target.value)}
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg" 
+            />
+            <button onClick={addPartner} className="btn-primary">
+              {savedPartner ? 'Update' : 'Add'} Partner
+            </button>
           </div>
         </div>
 
