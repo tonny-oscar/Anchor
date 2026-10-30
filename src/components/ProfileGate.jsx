@@ -12,12 +12,12 @@ function SetupHelp({ error }) {
     return (
       <div className="text-left">
         <p className="text-gray-700 mb-4">
-          You're signed in, but the database is refusing access. The Firestore security rules haven't been published yet.
+          You're signed in, but the database refused access to your data.
         </p>
         <ol className="list-decimal list-inside space-y-2 text-sm text-gray-700 bg-gray-50 rounded-2xl p-4 mb-4">
-          <li>Open <a href={`${consoleUrl}/rules`} target="_blank" rel="noopener noreferrer" className="text-calm-700 font-semibold underline">Firestore → Rules</a> in the Firebase console.</li>
-          <li>Replace everything with the contents of <code className="bg-white px-1 rounded">firestore.rules</code> from this project.</li>
-          <li>Click <strong>Publish</strong>, wait a few seconds, then press <strong>Try again</strong>.</li>
+          <li>If the rules were just published, wait a minute and press <strong>Try again</strong>. New rules can take a little while to reach an open page.</li>
+          <li>Still stuck? <strong>Log out</strong> and log back in to refresh your session.</li>
+          <li>Otherwise, check that <a href={`${consoleUrl}/rules`} target="_blank" rel="noopener noreferrer" className="text-calm-700 font-semibold underline">Firestore → Rules</a> matches <code className="bg-white px-1 rounded">firestore.rules</code> from this project, then publish.</li>
         </ol>
       </div>
     );
@@ -40,7 +40,16 @@ function SetupHelp({ error }) {
 }
 
 export default function ProfileGate({ children }) {
-  const { profileStatus, profileError, retryProfile } = useAuth();
+  const { profileStatus, profileError } = useAuth();
+
+  const retry = async () => {
+    try {
+      await auth.currentUser?.getIdToken(true);
+    } catch (err) {
+      console.warn('Could not refresh session token:', err);
+    }
+    window.location.reload();
+  };
 
   if (profileStatus === 'error') {
     return (
@@ -51,7 +60,7 @@ export default function ProfileGate({ children }) {
           <SetupHelp error={profileError} />
           <p className="text-xs text-gray-400 font-mono break-all mb-6">{profileError?.code || profileError?.message}</p>
           <div className="flex gap-3 justify-center">
-            <button onClick={retryProfile} className="btn-primary">Try again</button>
+            <button onClick={retry} className="btn-primary">Try again</button>
             <button onClick={() => signOut(auth)} className="px-5 py-2 border-2 border-gray-200 rounded-full hover:bg-gray-50">Log out</button>
           </div>
         </div>
