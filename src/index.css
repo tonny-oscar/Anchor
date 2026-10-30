@@ -1,85 +1,209 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 
 @theme {
-  --color-calm-50: #f0fdf4;
-  --color-calm-100: #dcfce7;
-  --color-calm-200: #bbf7d0;
-  --color-calm-300: #86efac;
-  --color-calm-400: #4ade80;
-  --color-calm-500: #22c55e;
-  --color-calm-600: #16a34a;
-  --color-calm-700: #15803d;
-  --color-calm-800: #166534;
-  --color-calm-900: #14532d;
-  
-  --color-serenity-50: #f0f9ff;
-  --color-serenity-100: #e0f2fe;
-  --color-serenity-200: #bae6fd;
-  --color-serenity-300: #7dd3fc;
-  --color-serenity-400: #38bdf8;
-  --color-serenity-500: #0ea5e9;
-  --color-serenity-600: #0284c7;
-  --color-serenity-700: #0369a1;
-  --color-serenity-800: #075985;
-  --color-serenity-900: #0c4a6e;
-  
-  --color-gentle-50: #faf5ff;
-  --color-gentle-100: #f3e8ff;
-  --color-gentle-200: #e9d5ff;
-  --color-gentle-300: #d8b4fe;
-  --color-gentle-400: #c084fc;
-  --color-gentle-500: #a855f7;
-  --color-gentle-600: #9333ea;
-  --color-gentle-700: #7e22ce;
-  --color-gentle-800: #6b21a8;
-  --color-gentle-900: #581c87;
+  /* Sea teal — primary actions, progress, "clean days" */
+  --color-calm-50: #eefbfa;
+  --color-calm-100: #d4f4f1;
+  --color-calm-200: #ace8e3;
+  --color-calm-300: #76d5cf;
+  --color-calm-400: #40bab5;
+  --color-calm-500: #249e9b;
+  --color-calm-600: #1a7f80;
+  --color-calm-700: #186668;
+  --color-calm-800: #185254;
+  --color-calm-900: #174447;
+
+  /* Open-water blue — secondary actions, information */
+  --color-serenity-50: #f0f7fb;
+  --color-serenity-100: #dcecf5;
+  --color-serenity-200: #bfdcec;
+  --color-serenity-300: #92c4de;
+  --color-serenity-400: #5fa5cb;
+  --color-serenity-500: #3b88b5;
+  --color-serenity-600: #2a6d98;
+  --color-serenity-700: #24587b;
+  --color-serenity-800: #224b66;
+  --color-serenity-900: #203f56;
+
+  /* Warm sand — tips, reflection, education */
+  --color-gentle-50: #fbf8f3;
+  --color-gentle-100: #f5eee2;
+  --color-gentle-200: #eadbc1;
+  --color-gentle-300: #dcc399;
+  --color-gentle-400: #cca671;
+  --color-gentle-500: #bf8f55;
+  --color-gentle-600: #a8764a;
+  --color-gentle-700: #8b5e3f;
+  --color-gentle-800: #724e38;
+  --color-gentle-900: #5e4131;
+
+  /* Deep sea navy — navigation, heroes, headings */
+  --color-abyss-50: #eef4f8;
+  --color-abyss-100: #d6e3ec;
+  --color-abyss-200: #adc6d8;
+  --color-abyss-300: #7a9fba;
+  --color-abyss-400: #4f7a99;
+  --color-abyss-500: #335d7c;
+  --color-abyss-600: #234863;
+  --color-abyss-700: #18384f;
+  --color-abyss-800: #102a3d;
+  --color-abyss-900: #0a1e2d;
+  --color-abyss-950: #06131d;
+
+  /* Neutral grays tinted toward sea-slate so every page shares the ocean mood */
+  --color-gray-50: #f5f9fa;
+  --color-gray-100: #ecf2f4;
+  --color-gray-200: #dbe5e9;
+  --color-gray-300: #c2d0d7;
+  --color-gray-400: #8ea2ad;
+  --color-gray-500: #64798a;
+  --color-gray-600: #4b5f6e;
+  --color-gray-700: #384a57;
+  --color-gray-800: #263642;
+  --color-gray-900: #15232e;
+
+  --animate-drift: drift 14s linear infinite;
+  --animate-drift-slow: drift 22s linear infinite;
+  --animate-rise: rise 0.6s ease-out both;
+  --animate-bob: bob 5s ease-in-out infinite;
+
+  @keyframes drift {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes bob {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50% { transform: translateY(-6px) rotate(2deg); }
+  }
 }
 
-body {
-  background-color: #f9fafb;
-  color: #111827;
-  font-family: system-ui, -apple-system, sans-serif;
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: #f3f8f9;
+    color: var(--color-gray-900);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3 {
+    color: var(--color-abyss-900);
+    letter-spacing: -0.01em;
+  }
 }
 
-.card {
-  background-color: white;
-  border-radius: 1rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-  padding: 1.5rem;
+@layer components {
+  .card {
+    background-color: white;
+    border-radius: 1.25rem;
+    border: 1px solid var(--color-gray-200);
+    box-shadow: 0 1px 2px rgba(10, 30, 45, 0.04), 0 8px 24px -12px rgba(10, 30, 45, 0.12);
+    padding: 1.5rem;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: 9999px;
+    transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    border: none;
+    cursor: pointer;
+  }
+
+  .btn-primary:active,
+  .btn-secondary:active,
+  .btn-ghost:active {
+    transform: scale(0.98);
+  }
+
+  .btn-primary {
+    background-color: var(--color-calm-600);
+    color: white;
+    box-shadow: 0 6px 16px -8px var(--color-calm-600);
+  }
+
+  .btn-primary:hover {
+    background-color: var(--color-calm-700);
+  }
+
+  .btn-secondary {
+    background-color: var(--color-abyss-700);
+    color: white;
+  }
+
+  .btn-secondary:hover {
+    background-color: var(--color-abyss-800);
+  }
+
+  .btn-ghost {
+    background-color: rgba(255, 255, 255, 0.12);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(6px);
+  }
+
+  .btn-ghost:hover {
+    background-color: rgba(255, 255, 255, 0.22);
+  }
+
+  .btn-primary:disabled,
+  .btn-secondary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .input {
+    width: 100%;
+    padding: 0.625rem 1rem;
+    border: 1px solid var(--color-gray-300);
+    border-radius: 0.75rem;
+    background-color: white;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .input:focus {
+    outline: none;
+    border-color: var(--color-calm-500);
+    box-shadow: 0 0 0 3px var(--color-calm-100);
+  }
+
+  .encouragement-text {
+    color: var(--color-calm-700);
+    font-style: italic;
+    font-size: 0.95rem;
+  }
+
+  .eyebrow {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-calm-600);
+  }
+
+  .quote {
+    font-family: Georgia, "Times New Roman", serif;
+    font-style: italic;
+  }
 }
 
-.btn-primary {
-  background-color: #16a34a;
-  color: white;
-  font-weight: 500;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.75rem;
-  transition: background-color 0.2s;
-  border: none;
-  cursor: pointer;
-}
-
-.btn-primary:hover {
-  background-color: #15803d;
-}
-
-.btn-secondary {
-  background-color: #0284c7;
-  color: white;
-  font-weight: 500;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.75rem;
-  transition: background-color 0.2s;
-  border: none;
-  cursor: pointer;
-}
-
-.btn-secondary:hover {
-  background-color: #0369a1;
-}
-
-.encouragement-text {
-  color: #15803d;
-  font-style: italic;
-  font-size: 0.875rem;
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

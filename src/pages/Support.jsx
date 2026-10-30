@@ -1,183 +1,173 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { db } from '../firebase';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { saveProfile } from '../lib/userData';
+import OceanHero from '../components/OceanHero';
+
+const reachOutScripts = [
+  { label: 'When it\'s hard right now', text: "Hey, I'm having a rough moment with cravings. Could you talk for 10 minutes?" },
+  { label: 'When you just need company', text: "Not an emergency, but I don't want to be alone tonight. Want to grab food or just hang out?" },
+  { label: 'After a slip', text: "I slipped today. I'm safe, and I'm getting back on track, but I wanted to be honest with you." },
+  { label: 'Sharing a win', text: "Small win: I made it through a craving today without using. Wanted someone to know!" },
+];
+
+const groups = [
+  { name: 'Alcoholics Anonymous (AA)', text: '12-step fellowship for alcohol recovery', url: 'https://www.aa.org' },
+  { name: 'Narcotics Anonymous (NA)', text: '12-step fellowship for drug recovery', url: 'https://www.na.org' },
+  { name: 'SMART Recovery', text: 'Science-based, self-empowering recovery meetings', url: 'https://www.smartrecovery.org' },
+  { name: 'Refuge Recovery', text: 'Buddhist-inspired, mindfulness-based recovery', url: 'https://www.refugerecovery.org' },
+  { name: 'Al-Anon', text: 'Support for families and friends of people who drink', url: 'https://al-anon.org' },
+  { name: 'Nar-Anon', text: 'Support for families and friends of people who use drugs', url: 'https://www.nar-anon.org' },
+];
 
 export default function Support() {
-  const { currentUser } = useAuth();
+  const { currentUser, profile } = useAuth();
   const [partnerEmail, setPartnerEmail] = useState('');
-  const [savedPartner, setSavedPartner] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
+  const [copied, setCopied] = useState(null);
+  const savedPartner = profile?.emergencyContact;
 
-  useEffect(() => {
-    loadPartner();
-  }, [currentUser]);
-
-  const loadPartner = async () => {
-    if (!currentUser) return;
-    try {
-      const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-      if (userDoc.exists()) {
-        const data = userDoc.data();
-        setSavedPartner(data.emergencyContact);
-      }
-    } catch (error) {
-      console.error('Error loading partner:', error);
+  const addPartner = () => {
+    const email = partnerEmail.trim();
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      setMessage('Please enter a valid email address.');
+      return;
     }
-    setLoading(false);
+    setPartnerEmail('');
+    setMessage('Your lighthouse person is saved.');
+    setTimeout(() => setMessage(''), 3000);
+    saveProfile(currentUser.uid, { emergencyContact: email }).catch(error => {
+      console.error('Error adding partner:', error);
+      setMessage('Could not save your partner. Please try again.');
+    });
   };
 
-  const addPartner = async () => {
-    if (!partnerEmail.trim()) return;
+  const removePartner = () => {
+    saveProfile(currentUser.uid, { emergencyContact: null }).catch(error => console.error('Error removing partner:', error));
+  };
 
+  const copyScript = async (text, i) => {
     try {
-      await updateDoc(doc(db, 'users', currentUser.uid), {
-        emergencyContact: partnerEmail
-      });
-      setSavedPartner(partnerEmail);
-      setPartnerEmail('');
-      setMessage('Partner added successfully!');
-      setTimeout(() => setMessage(''), 3000);
+      await navigator.clipboard.writeText(text);
+      setCopied(i);
+      setTimeout(() => setCopied(null), 2000);
     } catch (error) {
-      console.error('Error adding partner:', error);
-      setMessage('Error adding partner');
+      console.error('Clipboard unavailable:', error);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        <h1 className="text-3xl font-bold mb-8">Support & Resources</h1>
+    <div className="min-h-screen pb-24">
+      <OceanHero
+        image="/ocean/islands.jpg"
+        eyebrow="Support & resources"
+        title="No one is an island"
+        subtitle="Recovery is easier with people around you. Here's how to build your crew and where to find help any time of day."
+        size="sm"
+        position="center 35%"
+      />
 
-        <div className="card mb-6">
-          <h2 className="text-2xl font-semibold mb-4">Talk to Someone</h2>
-          <p className="text-gray-700 mb-4">Add an accountability partner who can support your journey</p>
-          
+      <div className="max-w-4xl mx-auto px-4 -mt-4 relative space-y-6">
+        <div className="card">
+          <h2 className="text-2xl font-semibold mb-1">Your lighthouse person</h2>
+          <p className="text-gray-700 mb-4">An accountability partner is someone you trust to shine a light when the water gets dark.</p>
+
           {message && (
-            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+            <div className={`mb-4 p-3 rounded-xl text-sm border ${message.startsWith('Your') ? 'bg-calm-50 border-calm-200 text-calm-800' : 'bg-red-50 border-red-200 text-red-700'}`}>
               {message}
             </div>
           )}
 
           {savedPartner && (
-            <div className="mb-4 p-4 bg-calm-50 rounded-lg">
-              <p className="text-sm text-gray-600 mb-1">Current Partner:</p>
-              <p className="font-semibold text-calm-700">{savedPartner}</p>
+            <div className="mb-4 p-4 bg-calm-50 rounded-xl flex items-center gap-3">
+              <span className="text-2xl">🗼</span>
+              <div className="flex-1">
+                <p className="text-sm text-gray-600">Current partner</p>
+                <p className="font-semibold text-calm-800">{savedPartner}</p>
+              </div>
+              <button onClick={removePartner} className="text-sm text-gray-500 hover:text-red-600">Remove</button>
             </div>
           )}
 
-          <div className="flex gap-3">
-            <input 
-              type="email" 
-              placeholder="Partner's email" 
+          <div className="flex flex-col sm:flex-row gap-3">
+            <input
+              type="email"
+              placeholder="Partner's email"
               value={partnerEmail}
               onChange={(e) => setPartnerEmail(e.target.value)}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg" 
+              className="input flex-1"
             />
             <button onClick={addPartner} className="btn-primary">
-              {savedPartner ? 'Update' : 'Add'} Partner
+              {savedPartner ? 'Update' : 'Add'} partner
             </button>
           </div>
         </div>
 
-        <div className="card mb-6">
-          <h2 className="text-2xl font-semibold mb-4">24/7 Support Lines</h2>
-          <div className="space-y-3">
-            <a href="tel:988" className="block p-4 bg-serenity-50 rounded-xl hover:bg-serenity-100 transition">
-              <h3 className="font-semibold mb-1">988 - Suicide & Crisis Lifeline</h3>
-              <p className="text-sm text-gray-600">24/7 free and confidential support</p>
+        <div className="card">
+          <h2 className="text-2xl font-semibold mb-1">Words for when it's hard to ask</h2>
+          <p className="text-gray-700 mb-4">Reaching out is often the hardest part. Copy one of these and send it as is.</p>
+          <div className="grid sm:grid-cols-2 gap-3">
+            {reachOutScripts.map((s, i) => (
+              <div key={s.label} className="p-4 bg-serenity-50 rounded-2xl flex flex-col">
+                <p className="text-xs font-bold uppercase tracking-wider text-serenity-700 mb-2">{s.label}</p>
+                <p className="text-gray-800 flex-1 mb-3">"{s.text}"</p>
+                <button onClick={() => copyScript(s.text, i)} className="self-start text-sm font-medium text-calm-700 hover:underline">
+                  {copied === i ? '✓ Copied' : 'Copy message'}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="card">
+          <h2 className="text-2xl font-semibold mb-4">24/7 support lines</h2>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <a href="tel:988" className="block p-4 bg-calm-50 rounded-2xl hover:bg-calm-100 transition">
+              <h3 className="font-semibold mb-1">988 · Suicide & Crisis Lifeline</h3>
+              <p className="text-sm text-gray-600">Call or text, free and confidential (US)</p>
             </a>
-            <a href="tel:18006624357" className="block p-4 bg-serenity-50 rounded-xl hover:bg-serenity-100 transition">
-              <h3 className="font-semibold mb-1">1-800-662-4357 - SAMHSA National Helpline</h3>
-              <p className="text-sm text-gray-600">Treatment referral and information service</p>
+            <a href="tel:18006624357" className="block p-4 bg-calm-50 rounded-2xl hover:bg-calm-100 transition">
+              <h3 className="font-semibold mb-1">1-800-662-4357 · SAMHSA Helpline</h3>
+              <p className="text-sm text-gray-600">Treatment referrals and information (US)</p>
             </a>
-            <a href="tel:18007997233" className="block p-4 bg-serenity-50 rounded-xl hover:bg-serenity-100 transition">
-              <h3 className="font-semibold mb-1">1-800-799-7233 - National Domestic Violence Hotline</h3>
-              <p className="text-sm text-gray-600">Support for those in unsafe situations</p>
+            <a href="tel:18007997233" className="block p-4 bg-calm-50 rounded-2xl hover:bg-calm-100 transition">
+              <h3 className="font-semibold mb-1">1-800-799-7233 · Domestic Violence Hotline</h3>
+              <p className="text-sm text-gray-600">For anyone in an unsafe home situation (US)</p>
+            </a>
+            <a href="https://findahelpline.com" target="_blank" rel="noopener noreferrer" className="block p-4 bg-calm-50 rounded-2xl hover:bg-calm-100 transition">
+              <h3 className="font-semibold mb-1">🌍 Outside the US?</h3>
+              <p className="text-sm text-gray-600">findahelpline.com lists free helplines in your country</p>
             </a>
           </div>
         </div>
 
-        <div className="card mb-6">
-          <h2 className="text-2xl font-semibold mb-4">Find Support Groups</h2>
-          <div className="space-y-3">
-            <div className="p-4 bg-calm-50 rounded-xl">
-              <h3 className="font-semibold mb-1">Alcoholics Anonymous (AA)</h3>
-              <p className="text-sm text-gray-600 mb-2">12-step program for alcohol recovery</p>
-              <a href="https://www.aa.org" target="_blank" rel="noopener noreferrer" className="text-calm-600 hover:underline text-sm">aa.org →</a>
-            </div>
-            <div className="p-4 bg-calm-50 rounded-xl">
-              <h3 className="font-semibold mb-1">Narcotics Anonymous (NA)</h3>
-              <p className="text-sm text-gray-600 mb-2">12-step program for drug recovery</p>
-              <a href="https://www.na.org" target="_blank" rel="noopener noreferrer" className="text-calm-600 hover:underline text-sm">na.org →</a>
-            </div>
-            <div className="p-4 bg-calm-50 rounded-xl">
-              <h3 className="font-semibold mb-1">SMART Recovery</h3>
-              <p className="text-sm text-gray-600 mb-2">Science-based addiction recovery support</p>
-              <a href="https://www.smartrecovery.org" target="_blank" rel="noopener noreferrer" className="text-calm-600 hover:underline text-sm">smartrecovery.org →</a>
-            </div>
-            <div className="p-4 bg-calm-50 rounded-xl">
-              <h3 className="font-semibold mb-1">Refuge Recovery</h3>
-              <p className="text-sm text-gray-600 mb-2">Buddhist-inspired recovery program</p>
-              <a href="https://www.refugerecovery.org" target="_blank" rel="noopener noreferrer" className="text-calm-600 hover:underline text-sm">refugerecovery.org →</a>
-            </div>
+        <div className="card">
+          <h2 className="text-2xl font-semibold mb-1">Find your crew</h2>
+          <p className="text-gray-700 mb-4">Meetings happen in person and online, every day, around the world.</p>
+          <div className="grid sm:grid-cols-2 gap-3">
+            {groups.map(g => (
+              <a key={g.name} href={g.url} target="_blank" rel="noopener noreferrer" className="p-4 rounded-2xl border border-gray-200 hover:border-calm-400 hover:bg-calm-50 transition group">
+                <h3 className="font-semibold mb-1 group-hover:text-calm-800">{g.name}</h3>
+                <p className="text-sm text-gray-600">{g.text}</p>
+              </a>
+            ))}
           </div>
         </div>
 
-        <div className="card mb-6">
-          <h2 className="text-2xl font-semibold mb-4">Recovery Education</h2>
-          <div className="space-y-4">
-            <div className="p-4 bg-gentle-50 rounded-xl">
-              <h3 className="font-semibold mb-2">Understanding Withdrawal</h3>
-              <ul className="space-y-2 text-sm text-gray-700">
-                <li>• <strong>Physical symptoms</strong> typically peak within 3-7 days</li>
-                <li>• <strong>Psychological symptoms</strong> can last weeks to months</li>
-                <li>• <strong>Post-Acute Withdrawal Syndrome (PAWS)</strong> may occur for 6-24 months</li>
-                <li>• Symptoms are temporary and will improve with time</li>
-              </ul>
-            </div>
-            <div className="p-4 bg-gentle-50 rounded-xl">
-              <h3 className="font-semibold mb-2">Brain Recovery Timeline</h3>
-              <ul className="space-y-2 text-sm text-gray-700">
-                <li>• <strong>Week 1:</strong> Dopamine production begins normalizing</li>
-                <li>• <strong>Month 1:</strong> Brain fog starts clearing</li>
-                <li>• <strong>Month 3:</strong> Significant improvement in cognitive function</li>
-                <li>• <strong>Month 6:</strong> Emotional regulation stabilizes</li>
-                <li>• <strong>Year 1:</strong> Brain structure shows measurable recovery</li>
-              </ul>
-            </div>
-            <div className="p-4 bg-gentle-50 rounded-xl">
-              <h3 className="font-semibold mb-2">Common Triggers & How to Handle Them</h3>
-              <ul className="space-y-2 text-sm text-gray-700">
-                <li>• <strong>Stress:</strong> Practice mindfulness, exercise, talk to someone</li>
-                <li>• <strong>Social pressure:</strong> Have an exit plan, bring a sober friend</li>
-                <li>• <strong>Boredom:</strong> Develop new hobbies, join groups, volunteer</li>
-                <li>• <strong>Emotions:</strong> Journal, therapy, healthy coping mechanisms</li>
-                <li>• <strong>Places/people:</strong> Avoid early in recovery, build new routines</li>
-              </ul>
-            </div>
+        <Link to="/learn" className="card flex items-center gap-4 hover:shadow-xl transition bg-gentle-50 border-gentle-200">
+          <span className="text-3xl">📖</span>
+          <div className="flex-1">
+            <h2 className="text-lg font-semibold">Want to understand what you're going through?</h2>
+            <p className="text-sm text-gray-600">Withdrawal, brain recovery, medication and staying safe, in the Learn section.</p>
           </div>
-        </div>
+          <span className="text-calm-700 font-semibold">→</span>
+        </Link>
 
-        <div className="card mb-6">
-          <h2 className="text-2xl font-semibold mb-4">Medication-Assisted Treatment (MAT)</h2>
-          <p className="text-gray-700 mb-3">FDA-approved medications can help manage withdrawal and cravings:</p>
-          <ul className="space-y-2 text-sm text-gray-700">
-            <li>• <strong>Alcohol:</strong> Naltrexone, Acamprosate, Disulfiram</li>
-            <li>• <strong>Opioids:</strong> Methadone, Buprenorphine, Naltrexone</li>
-            <li>• <strong>Nicotine:</strong> Nicotine replacement, Bupropion, Varenicline</li>
-          </ul>
-          <p className="text-sm text-gray-600 mt-3 italic">Consult with a healthcare provider to discuss options</p>
-        </div>
-
-        <div className="card bg-red-50 border-2 border-red-200">
-          <h2 className="text-xl font-semibold mb-2 text-red-800">Crisis Resources</h2>
-          <p className="text-gray-700 mb-3">If you're in immediate danger or experiencing a medical emergency:</p>
-          <ul className="space-y-2 text-gray-700">
+        <div className="card bg-red-50 border-red-200">
+          <h2 className="text-xl font-semibold mb-2 text-red-800">In immediate danger?</h2>
+          <ul className="space-y-1 text-gray-700">
             <li>• <strong>Call 911</strong> (US) or your local emergency number</li>
-            <li>• <strong>988</strong> - National Suicide Prevention Lifeline</li>
-            <li>• <strong>1-800-662-4357</strong> - SAMHSA National Helpline</li>
+            <li>• Suspected opioid overdose: give naloxone if you have it, then call for help</li>
             <li>• Go to your nearest emergency room</li>
           </ul>
         </div>

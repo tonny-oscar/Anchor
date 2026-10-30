@@ -11,9 +11,9 @@ export default defineConfig({
       manifest: {
         name: 'Anchor - Recovery Support',
         short_name: 'Anchor',
-        description: 'Track your recovery journey, one day at a time',
-        theme_color: '#16a34a',
-        background_color: '#ffffff',
+        description: 'Cravings are waves. You are the anchor. A calm, private space to track your recovery.',
+        theme_color: '#0a1e2d',
+        background_color: '#f3f8f9',
         display: 'standalone',
         orientation: 'portrait',
         scope: '/',
@@ -38,7 +38,7 @@ export default defineConfig({
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg}'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/firebasestorage\.googleapis\.com\/.*/i,

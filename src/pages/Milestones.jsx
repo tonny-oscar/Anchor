@@ -1,70 +1,150 @@
-export default function Milestones() {
-  const milestones = [
-    { name: 'First 24 Hours', days: 1, achieved: true, icon: '🌟', benefit: 'Body begins detoxification' },
-    { name: '3 Days Strong', days: 3, achieved: true, icon: '💪', benefit: 'Physical withdrawal symptoms peak' },
-    { name: '1 Week', days: 7, achieved: true, icon: '🏆', benefit: 'Sleep patterns start improving' },
-    { name: '2 Weeks', days: 14, achieved: false, icon: '🎯', benefit: 'Mental clarity increases' },
-    { name: '30 Days', days: 30, achieved: false, icon: '🌙', benefit: 'Brain chemistry rebalancing' },
-    { name: '60 Days', days: 60, achieved: false, icon: '⭐', benefit: 'Mood stabilization' },
-    { name: '90 Days', days: 90, achieved: false, icon: '💎', benefit: 'New habits firmly established' },
-    { name: '6 Months', days: 180, achieved: false, icon: '🎖️', benefit: 'Physical health significantly improved' },
-    { name: '1 Year', days: 365, achieved: false, icon: '👑', benefit: 'Complete lifestyle transformation' },
-    { name: '18 Months', days: 547, achieved: false, icon: '🦅', benefit: 'Relapse risk greatly reduced' },
-    { name: '2 Years', days: 730, achieved: false, icon: '🌟', benefit: 'New identity fully formed' },
-    { name: '5 Years', days: 1825, achieved: false, icon: '🏅', benefit: 'Long-term recovery established' }
-  ];
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { substanceStats } from '../lib/userData';
+import OceanHero from '../components/OceanHero';
 
-  const recoveryTimeline = [
-    { time: '20 minutes', benefit: 'Heart rate and blood pressure normalize' },
-    { time: '12 hours', benefit: 'Carbon monoxide levels return to normal' },
-    { time: '24 hours', benefit: 'Anxiety peaks but body begins healing' },
-    { time: '48 hours', benefit: 'Nerve endings start regrowing' },
-    { time: '72 hours', benefit: 'Breathing becomes easier' },
-    { time: '1 week', benefit: 'Sleep quality improves' },
-    { time: '2 weeks', benefit: 'Circulation and lung function improve' },
-    { time: '1 month', benefit: 'Coughing and shortness of breath decrease' },
-    { time: '3 months', benefit: 'Brain receptors return to normal levels' },
-    { time: '9 months', benefit: 'Lung capacity increases significantly' },
-    { time: '1 year', benefit: 'Heart disease risk cut in half' },
-    { time: '5 years', benefit: 'Stroke risk reduced to non-user level' }
-  ];
+const milestoneList = [
+  { name: 'First Light', days: 1, icon: '🌅', benefit: 'You chose a new direction. Your body begins to detox.' },
+  { name: 'Finding Your Sea Legs', days: 3, icon: '⛵', benefit: 'Physical withdrawal often peaks, then starts to ease.' },
+  { name: 'One Week at Sea', days: 7, icon: '🧭', benefit: 'Sleep patterns begin to improve.' },
+  { name: 'Steady Current', days: 14, icon: '🌊', benefit: 'Mental clarity increases.' },
+  { name: 'Full Moon Tide', days: 30, icon: '🌕', benefit: 'Brain chemistry is rebalancing.' },
+  { name: 'Calmer Waters', days: 60, icon: '🐬', benefit: 'Moods become more stable.' },
+  { name: 'Safe Harbor', days: 90, icon: '⚓', benefit: 'New habits are firmly taking hold.' },
+  { name: 'Lighthouse Keeper', days: 180, icon: '🗼', benefit: 'Physical health significantly improved.' },
+  { name: 'Around the Sun', days: 365, icon: '☀️', benefit: 'A whole year of seasons, faced clear-headed.' },
+  { name: 'Open Ocean', days: 547, icon: '🐋', benefit: 'Relapse risk is much lower.' },
+  { name: 'Captain', days: 730, icon: '🧑‍✈️', benefit: 'A new identity, fully your own.' },
+  { name: 'Charting New Waters', days: 1825, icon: '🗺️', benefit: 'Long-term recovery is established.' }
+];
+
+const timelines = {
+  Nicotine: [
+    { time: '20 minutes', benefit: 'Heart rate and blood pressure begin to drop' },
+    { time: '12 hours', benefit: 'Carbon monoxide in the blood returns to normal' },
+    { time: '48 hours', benefit: 'Taste and smell begin to improve' },
+    { time: '72 hours', benefit: 'Nicotine is out of your body; breathing feels easier' },
+    { time: '2–12 weeks', benefit: 'Circulation and lung function improve' },
+    { time: '1–9 months', benefit: 'Coughing and shortness of breath decrease' },
+    { time: '1 year', benefit: 'Risk of heart disease is about half that of a smoker' },
+    { time: '5+ years', benefit: 'Stroke risk keeps falling toward a non-smoker\'s' },
+  ],
+  Alcohol: [
+    { time: '6–24 hours', benefit: 'Withdrawal may start. If you drank heavily, get medical advice' },
+    { time: '24–72 hours', benefit: 'Withdrawal symptoms usually peak, then ease' },
+    { time: '1 week', benefit: 'Sleep starts improving; you\'re better hydrated' },
+    { time: '2–4 weeks', benefit: 'Liver fat begins to reduce; blood pressure can drop' },
+    { time: '1–3 months', benefit: 'Energy, mood, skin and concentration improve' },
+    { time: '1 year', benefit: 'Risk of many alcohol-related illnesses keeps falling' },
+  ],
+  'Any substance': [
+    { time: 'Day 1', benefit: 'Your body starts clearing the substance' },
+    { time: 'Week 1', benefit: 'The worst of acute withdrawal usually passes' },
+    { time: 'Month 1', benefit: 'Brain fog begins to lift' },
+    { time: 'Month 3', benefit: 'Focus, memory and decision-making improve' },
+    { time: 'Month 6', benefit: 'Emotions steady; everyday joys feel good again' },
+    { time: 'Year 1+', benefit: 'The brain\'s reward system shows measurable healing' },
+  ],
+};
+
+export default function Milestones() {
+  const { profile } = useAuth();
+  const substances = (profile?.substances || []).map(s => ({ ...s, ...substanceStats(s) }));
+  const [selectedId, setSelectedId] = useState(null);
+  const [timelineKey, setTimelineKey] = useState('Any substance');
+  const selected = substances.find(s => s.id === selectedId) || substances[0];
+  const days = selected?.daysClean ?? 0;
+  const milestones = milestoneList.map(m => ({ ...m, achieved: !!selected && days >= m.days }));
+  const next = selected && milestones.find(m => !m.achieved);
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-6xl mx-auto px-4">
-        <h1 className="text-3xl font-bold mb-2">Milestones</h1>
-        <p className="encouragement-text mb-8">Every day counts. Celebrate your progress.</p>
+    <div className="min-h-screen pb-24">
+      <OceanHero
+        image="/ocean/shore-gulls.jpg"
+        eyebrow="Milestones"
+        title="Every tide counts"
+        subtitle="Each badge marks a stretch of water you crossed. Celebrate them; they were hard-won."
+        size="sm"
+      />
 
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
-          {milestones.map((m, i) => (
-            <div key={i} className={`card text-center ${m.achieved ? 'bg-gradient-to-br from-calm-50 to-calm-100 border-2 border-calm-300' : 'opacity-60'}`}>
-              <div className={`text-6xl mb-4 ${m.achieved ? '' : 'grayscale'}`}>{m.icon}</div>
-              <h3 className="text-xl font-bold mb-2">{m.name}</h3>
-              <p className="text-gray-600 mb-2">{m.days} {m.days === 1 ? 'day' : 'days'}</p>
-              <p className="text-sm text-gray-600 italic">{m.benefit}</p>
-              {m.achieved && <div className="mt-3 text-calm-600 font-semibold">✓ Achieved</div>}
-              {!m.achieved && <div className="mt-3 text-gray-500">🔒 Locked</div>}
+      <div className="max-w-6xl mx-auto px-4 -mt-4 relative">
+        {!selected && (
+          <div className="card mb-8 text-center">
+            <p className="text-gray-700 mb-4">Start tracking something to begin earning milestones.</p>
+            <Link to="/dashboard" className="btn-primary">Drop your first anchor</Link>
+          </div>
+        )}
+
+        {substances.length > 1 && (
+          <div className="flex flex-wrap gap-2 mb-4">
+            {substances.map(s => (
+              <button
+                key={s.id}
+                onClick={() => setSelectedId(s.id)}
+                className={`px-4 py-2 rounded-full text-sm border transition ${selected?.id === s.id ? 'bg-abyss-800 text-white border-abyss-800' : 'bg-white border-gray-300 hover:border-calm-400'}`}
+              >
+                {s.name} · {s.daysClean}d
+              </button>
+            ))}
+          </div>
+        )}
+
+        {next && (
+          <div className="card mb-8 flex items-center gap-4 bg-abyss-800 border-abyss-700 text-white">
+            <div className="text-4xl">{next.icon}</div>
+            <div>
+              <p className="text-xs uppercase tracking-widest text-calm-200 font-bold">Next on the horizon · {selected.name}</p>
+              <p className="text-xl font-semibold">{next.name} · {next.days - days} {next.days - days === 1 ? 'day' : 'days'} to go</p>
+            </div>
+          </div>
+        )}
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+          {milestones.map(m => (
+            <div key={m.name} className={`card text-center relative overflow-hidden ${m.achieved ? 'bg-gradient-to-b from-calm-50 to-white border-calm-300' : 'bg-gray-50'}`}>
+              <div className={`text-5xl mb-3 ${m.achieved ? '' : 'grayscale opacity-40'}`}>{m.icon}</div>
+              <h3 className="text-lg font-bold mb-1">{m.name}</h3>
+              <p className="text-sm font-medium text-calm-700 mb-2">{m.days} {m.days === 1 ? 'day' : 'days'}</p>
+              <p className="text-sm text-gray-600">{m.benefit}</p>
+              <div className={`mt-3 text-xs font-semibold ${m.achieved ? 'text-calm-700' : 'text-gray-400'}`}>
+                {m.achieved ? '✓ Reached' : 'Still ahead'}
+              </div>
             </div>
           ))}
         </div>
 
         <div className="card mb-8">
-          <h2 className="text-2xl font-bold mb-6">Recovery Timeline: What's Happening in Your Body</h2>
-          <div className="space-y-4">
-            {recoveryTimeline.map((item, i) => (
-              <div key={i} className="flex items-start gap-4 p-4 bg-gradient-to-r from-calm-50 to-serenity-50 rounded-xl">
-                <div className="bg-calm-600 text-white px-4 py-2 rounded-lg font-bold text-sm whitespace-nowrap">
+          <div className="flex flex-wrap gap-3 justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold">What's healing below the surface</h2>
+            <div className="flex gap-1 p-1 bg-gray-100 rounded-full">
+              {Object.keys(timelines).map(k => (
+                <button key={k} onClick={() => setTimelineKey(k)} className={`px-3 py-1.5 rounded-full text-sm transition ${timelineKey === k ? 'bg-white shadow text-abyss-900 font-semibold' : 'text-gray-600'}`}>
+                  {k}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-3">
+            {timelines[timelineKey].map(item => (
+              <div key={item.time} className="flex items-start gap-4 p-4 bg-gradient-to-r from-calm-50 to-serenity-50 rounded-2xl">
+                <div className="bg-abyss-700 text-white px-3 py-1.5 rounded-lg font-bold text-sm whitespace-nowrap min-w-24 text-center">
                   {item.time}
                 </div>
                 <p className="text-gray-700 pt-1">{item.benefit}</p>
               </div>
             ))}
           </div>
+          <p className="text-xs text-gray-500 mt-4">General guidance only. Everyone's body heals at its own pace.</p>
         </div>
 
-        <div className="card text-center bg-gradient-to-br from-gentle-50 to-gentle-100">
-          <h2 className="text-2xl font-bold mb-2">Keep Going!</h2>
-          <p className="text-gray-700">You're building a new life, one day at a time. Every milestone is a victory worth celebrating.</p>
+        <div className="relative overflow-hidden rounded-3xl">
+          <img src="/ocean/dawn-beach.jpg" alt="Sunrise over a calm beach" className="absolute inset-0 w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-abyss-900/50" />
+          <div className="relative text-center text-white py-14 px-6">
+            <h2 className="text-3xl font-bold text-white mb-2">Keep sailing</h2>
+            <p className="text-abyss-100 max-w-xl mx-auto">You're building a new life, one tide at a time. Every milestone is a victory worth celebrating.</p>
+          </div>
         </div>
       </div>
     </div>
