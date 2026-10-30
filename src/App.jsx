@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Navigation from './components/Navigation';
 import EmergencyButton from './components/EmergencyButton';
 import ProfileGate from './components/ProfileGate';
+import PwaPrompts from './components/PwaPrompts';
 import Landing from './pages/Landing';
 import Signup from './pages/Signup';
 import Login from './pages/Login';
@@ -39,6 +40,7 @@ function AppRoutes() {
     <>
       <Navigation />
       <EmergencyButton />
+      <PwaPrompts />
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/signup" element={<PublicOnlyRoute><Signup /></PublicOnlyRoute>} />
