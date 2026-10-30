@@ -1,7 +1,11 @@
 import { Link } from 'react-router-dom';
 import AnchorLogo from '../components/AnchorLogo';
 import { Waves } from '../components/OceanHero';
-import { PublicNav } from '../components/Navigation';
+import { PostCard } from './Blog';
+import { samplePosts } from '../data/samplePosts';
+import { whatsappLink } from '../data/site';
+
+const latestPosts = samplePosts.slice(0, 3).map(p => ({ ...p, date: new Date(p.date) }));
 
 const features = [
   { icon: '⚓', title: 'Count your anchored days', text: 'Track each substance separately and watch your streaks grow, day by day.' },
@@ -30,8 +34,6 @@ export default function Landing() {
       <section className="relative min-h-[92vh] flex flex-col overflow-hidden bg-abyss-900 text-white">
         <img src="/ocean/sunset-waves.jpg" alt="" className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-b from-abyss-950/70 via-abyss-900/40 to-abyss-950/80" />
-
-        <PublicNav transparent />
 
         <div className="relative flex-1 flex items-center pt-16">
           <div className="max-w-6xl mx-auto px-4 pb-24 text-center animate-rise">
@@ -140,6 +142,33 @@ export default function Landing() {
         </div>
       </section>
 
+      <section className="max-w-6xl mx-auto px-4 pb-20">
+        <div className="flex flex-wrap justify-between items-end gap-4 mb-8">
+          <div>
+            <p className="eyebrow mb-2">From the blog</p>
+            <h2 className="text-3xl font-bold">Stories and lessons from the shore</h2>
+          </div>
+          <Link to="/blog" className="text-calm-700 font-semibold hover:underline">All posts →</Link>
+        </div>
+        <div className="grid md:grid-cols-3 gap-6">
+          {latestPosts.map(post => <PostCard key={post.id} post={post} />)}
+        </div>
+      </section>
+
+      <section className="max-w-6xl mx-auto px-4 pb-20">
+        <div className="rounded-3xl bg-abyss-900 text-white p-8 md:p-12 flex flex-col md:flex-row items-center gap-6">
+          <div className="text-5xl">💬</div>
+          <div className="flex-1 text-center md:text-left">
+            <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">You don't have to sail alone</h2>
+            <p className="text-abyss-100">Join the Anchor community on WhatsApp for daily check-ins, encouragement and people who understand.</p>
+          </div>
+          <div className="flex flex-wrap gap-3 justify-center">
+            <a href={whatsappLink()} target="_blank" rel="noopener noreferrer" className="px-6 py-3 rounded-full bg-[#25D366] hover:bg-[#1ebe5b] font-semibold transition">Join on WhatsApp</a>
+            <Link to="/find-help" className="btn-ghost">Find help near me</Link>
+          </div>
+        </div>
+      </section>
+
       <section className="max-w-3xl mx-auto px-4 pb-20 text-center">
         <img src="/ocean/calm-horizon.jpg" alt="Calm open sea under a pale blue sky" className="rounded-3xl w-full h-48 object-cover mb-10" />
         <p className="eyebrow mb-3">Your journey is private</p>
@@ -156,14 +185,16 @@ export default function Landing() {
           <div className="flex items-center gap-2 text-white font-bold">
             <AnchorLogo className="w-6 h-6 text-calm-300" /> Anchor
           </div>
-          <div className="flex gap-6 text-sm">
-            <a href="#" className="hover:text-white">About</a>
-            <a href="#" className="hover:text-white">Privacy</a>
-            <a href="#" className="hover:text-white">Terms</a>
+          <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm">
+            <Link to="/blog" className="hover:text-white">Blog</Link>
+            <Link to="/guide" className="hover:text-white">Guide</Link>
+            <Link to="/community" className="hover:text-white">Community</Link>
+            <Link to="/find-help" className="hover:text-white">Find help</Link>
+            <Link to="/contact" className="hover:text-white">Contact</Link>
           </div>
           <p className="text-sm text-red-300 text-center md:text-right">
-            In danger right now? Call 911 or your local emergency number.<br />
-            Crisis line: call or text 988 (US).
+            In danger right now? Call 999 or 112.<br />
+            NACADA helpline: 1192 (free, Kenya).
           </p>
         </div>
       </footer>

@@ -198,6 +198,39 @@
     font-family: Georgia, "Times New Roman", serif;
     font-style: italic;
   }
+
+  .anchor-pin span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    border: 2px solid white;
+    box-shadow: 0 4px 10px rgba(6, 19, 29, 0.35);
+    font-size: 15px;
+  }
+
+  .anchor-pin i {
+    display: block;
+    font-style: normal;
+    transform: rotate(45deg);
+  }
+
+  .anchor-you span {
+    display: block;
+    width: 20px;
+    height: 20px;
+    border-radius: 9999px;
+    background: var(--color-serenity-500);
+    border: 3px solid white;
+    box-shadow: 0 0 0 6px rgba(59, 136, 181, 0.25);
+  }
+
+  .leaflet-container {
+    font-family: inherit;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -3,19 +3,64 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function isOwner(userId) {
-      return request.auth != null && request.auth.uid == userId;
+    function signedIn() {
+      return request.auth != null;
     }
 
-    // Each user's profile (substances, habits, partner, reason) lives at users/{uid}.
-    // Check-ins and logged cravings live in subcollections under it.
-    // Only the signed-in owner can read or write any of it.
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    // An admin is any user with a document at admins/{uid} (create it in the Firebase console).
+    function isAdmin() {
+      return signedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function optionalString(data, field, maxSize) {
+      return !(field in data) || (data[field] is string && data[field].size() <= maxSize);
+    }
+
+    // Private recovery data: profile, trackers, habits, check-ins, logged cravings.
     match /users/{userId} {
       allow read, write: if isOwner(userId);
 
       match /{subcollection}/{docId} {
         allow read, write: if isOwner(userId);
       }
+    }
+
+    // Admin list: users may only check their own admin status. Managed from the console.
+    match /admins/{adminId} {
+      allow read: if isOwner(adminId);
+      allow write: if false;
+    }
+
+    // Blog posts: public to read, only admins can publish, edit or delete.
+    match /posts/{postId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Verified help centres shown on the Find help map: public to read, only admins can manage.
+    match /centers/{centerId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Contact messages: anyone can send one, only admins can read and manage them.
+    match /messages/{messageId} {
+      allow create: if request.resource.data.keys().hasOnly(['name', 'email', 'phone', 'topic', 'message', 'location', 'uid', 'status', 'createdAt'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 100
+        && request.resource.data.message is string
+        && request.resource.data.message.size() > 0 && request.resource.data.message.size() <= 5000
+        && optionalString(request.resource.data, 'email', 200)
+        && optionalString(request.resource.data, 'phone', 30)
+        && optionalString(request.resource.data, 'topic', 60)
+        && request.resource.data.status == 'new'
+        && request.resource.data.createdAt == request.time
+        && (request.resource.data.uid == null || (signedIn() && request.resource.data.uid == request.auth.uid));
+      allow read, update, delete: if isAdmin();
     }
 
     // Everything else is closed.

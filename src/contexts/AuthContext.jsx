@@ -3,6 +3,7 @@ import { auth, db } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { ensureUserProfile } from '../lib/userData';
+import { checkIsAdmin } from '../lib/content';
 
 const AuthContext = createContext();
 
@@ -15,6 +16,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [profileState, setProfileState] = useState({ uid: null, profile: null, error: null });
   const [attempt, setAttempt] = useState(0);
+  const [adminState, setAdminState] = useState({ uid: null, isAdmin: false });
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -50,6 +52,16 @@ export function AuthProvider({ children }) {
     };
   }, [currentUser, attempt]);
 
+  useEffect(() => {
+    if (!currentUser) return;
+    const uid = currentUser.uid;
+    let cancelled = false;
+    checkIsAdmin(uid)
+      .then(isAdmin => !cancelled && setAdminState({ uid, isAdmin }))
+      .catch(() => !cancelled && setAdminState({ uid, isAdmin: false }));
+    return () => { cancelled = true; };
+  }, [currentUser, attempt]);
+
   const retryProfile = () => {
     setProfileState({ uid: null, profile: null, error: null });
     setAttempt(a => a + 1);
@@ -64,6 +76,8 @@ export function AuthProvider({ children }) {
     profileStatus,
     profileError: isCurrent ? profileState.error : null,
     retryProfile,
+    isAdmin: !!currentUser && adminState.uid === currentUser.uid && adminState.isAdmin,
+    adminChecked: !!currentUser && adminState.uid === currentUser.uid,
   };
 
   return (

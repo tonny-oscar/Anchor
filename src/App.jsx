@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Navigation from './components/Navigation';
 import EmergencyButton from './components/EmergencyButton';
+import ProfileGate from './components/ProfileGate';
 import Landing from './pages/Landing';
 import Signup from './pages/Signup';
 import Login from './pages/Login';
@@ -15,6 +16,13 @@ import Milestones from './pages/Milestones';
 import Support from './pages/Support';
 import Learn from './pages/Learn';
 import Settings from './pages/Settings';
+import Blog from './pages/Blog';
+import BlogPost from './pages/BlogPost';
+import Guide from './pages/Guide';
+import Community from './pages/Community';
+import FindHelp from './pages/FindHelp';
+import Contact from './pages/Contact';
+import Admin from './pages/Admin';
 
 function PrivateRoute({ children }) {
   const { currentUser } = useAuth();
@@ -35,7 +43,15 @@ function AppRoutes() {
         <Route path="/" element={<Landing />} />
         <Route path="/signup" element={<PublicOnlyRoute><Signup /></PublicOnlyRoute>} />
         <Route path="/login" element={<PublicOnlyRoute><Login /></PublicOnlyRoute>} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/blog/:id" element={<BlogPost />} />
+        <Route path="/guide" element={<Guide />} />
+        <Route path="/learn" element={<Learn />} />
+        <Route path="/community" element={<Community />} />
+        <Route path="/find-help" element={<FindHelp />} />
+        <Route path="/contact" element={<Contact />} />
+
         <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
         <Route path="/substance/:id" element={<PrivateRoute><SubstanceDetail /></PrivateRoute>} />
         <Route path="/checkin" element={<PrivateRoute><CheckIn /></PrivateRoute>} />
@@ -44,8 +60,10 @@ function AppRoutes() {
         <Route path="/habits" element={<PrivateRoute><Habits /></PrivateRoute>} />
         <Route path="/milestones" element={<PrivateRoute><Milestones /></PrivateRoute>} />
         <Route path="/support" element={<PrivateRoute><Support /></PrivateRoute>} />
-        <Route path="/learn" element={<PrivateRoute><Learn /></PrivateRoute>} />
         <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
+        <Route path="/admin" element={<PrivateRoute><Admin /></PrivateRoute>} />
+
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
   );
